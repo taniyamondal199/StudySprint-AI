@@ -1,0 +1,118 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String          @id @default(uuid())
+  walletAddress  String          @unique
+  username       String          @default("Sprinter")
+  bio            String          @default("Learning on Injective")
+  avatar         String          @default("avatar_1")
+  level          Int             @default(1)
+  xp             Int             @default(0)
+  coins          Int             @default(0)
+  streak         Int             @default(0)
+  lastActiveDate DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  challenges     Challenge[]
+  sessions       StudySession[]
+  goals          Goal[]
+  achievements   Achievement[]
+  nfts           NFT[]
+  sentRequests   Friend[]        @relation("SentRequests")
+  recvRequests   Friend[]        @relation("RecvRequests")
+  notifications  Notification[]
+}
+
+model Challenge {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  category       String
+  difficulty     String    // Easy, Medium, Hard
+  deadline       DateTime
+  duration       Int       // minutes
+  xpReward       Int
+  coinReward     Int
+  status         String    // PENDING, COMPLETED, FAILED
+  completionDate DateTime?
+  txHash         String?   // Injective transaction proof
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+}
+
+model StudySession {
+  id             String    @id @default(uuid())
+  duration       Int       // minutes
+  startTime      DateTime
+  endTime        DateTime
+  category       String
+  mode           String    // 25/5, 50/10, CUSTOM
+  synced         Boolean   @default(true)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id             String    @id @default(uuid())
+  title          String
+  targetValue    Int       // target minutes
+  currentValue   Int       @default(0)
+  type           String    // DAILY, WEEKLY, MONTHLY
+  category       String
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Achievement {
+  id             String    @id @default(uuid())
+  title          String
+  description    String
+  badgeId        String    // Identifies which custom SVG to render
+  unlockedAt     DateTime  @default(now())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NFT {
+  id             String    @id @default(uuid())
+  title          String
+  description    String
+  badgeId        String
+  ipfsUri        String
+  txHash         String
+  mintDate       DateTime  @default(now())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Friend {
+  id             String    @id @default(uuid())
+  senderId       String
+  receiverId     String
+  status         String    // PENDING, ACCEPTED
+  createdAt      DateTime  @default(now())
+  sender         User      @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User      @relation("RecvRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  @@unique([senderId, receiverId])
+}
+
+model Notification {
+  id             String    @id @default(uuid())
+  type           String    // FRIEND_REQUEST, CHALLENGE_COMPLETE, NFT_MINTED, LEVEL_UP
+  title          String
+  message        String
+  isRead         Boolean   @default(false)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+}

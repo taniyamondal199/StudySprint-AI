@@ -1,0 +1,33 @@
+[package]
+name = "studysprint-contract"
+version = "0.1.0"
+authors = ["StudySprint Team"]
+edition = "2021"
+
+exclude = [
+  # Those files are rust-optimizer artifacts, and they're very large
+  "artifacts/*",
+  "contract.wasm",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-schema = "1.2.0"
+cosmwasm-std = "1.2.0"
+cosmwasm-storage = "1.2.0"
+cw-storage-plus = "1.0.1"
+cw2 = "1.0.1"
+schemars = "0.8.10"
+serde = { version = "1.0.145", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.37" }
+
+[dev-dependencies]
+cosmwasm-multi-test = "0.16.0"
